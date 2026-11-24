@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulator Logistik COVID-19 Indonesia</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f5f6f8; color: #222; }
+  header { background: #1f3a5f; color: #fff; padding: 16px 24px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
+  main { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px 24px; }
+  form, .out { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  form { width: 270px; }
+  .out { flex: 1; min-width: 320px; }
+  label { display: block; margin-top: 12px; font-size: 14px; font-weight: bold; }
+  input[type=range], select { width: 100%; }
+  .chk { font-weight: normal; margin-top: 6px; }
+  button { margin-top: 16px; width: 100%; padding: 10px; background: #1f3a5f; color: #fff; border: 0; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  img { max-width: 100%; }
+  table { border-collapse: collapse; margin-top: 12px; }
+  td, th { border: 1px solid #999; padding: 6px 14px; text-align: left; }
+  th { background: #e6e6e6; }
+  .note { font-size: 13px; color: #555; margin-top: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulator Pertumbuhan Logistik: Kasus COVID-19 Gelombang Delta Indonesia</h1>
+  <p>Reyna Noernaila - 301240033 | Pemodelan dan Simulasi, TA-07 | dP/dt = rP(1 - P/K)</p>
+</header>
+<main>
+  <form method="post">
+    <label>Laju pertumbuhan r: <span id="rv">{{ '%.3f'|format(r) }}</span> per hari
+      <input type="range" name="r" min="0.01" max="0.30" step="0.005" value="{{ r }}"
+             oninput="document.getElementById('rv').textContent=parseFloat(this.value).toFixed(3)"></label>
+    <label>Kapasitas K: <span id="kv">{{ '%.2f'|format(K) }}</span> juta
+      <input type="range" name="K" min="1" max="4" step="0.01" value="{{ K }}"
+             oninput="document.getElementById('kv').textContent=parseFloat(this.value).toFixed(2)"></label>
+    <label>Step size h (hari)
+      <select name="h">
+        {% for o in h_options %}<option value="{{ o }}" {{ 'selected' if o == h else '' }}>{{ o }}</option>{% endfor %}
+      </select></label>
+    <label>Metode</label>
+    {% for m in ['Euler', 'RK4', 'solve_ivp'] %}
+    <label class="chk"><input type="checkbox" name="methods" value="{{ m }}" {{ 'checked' if m in methods else '' }}> {{ m }}</label>
+    {% endfor %}
+    <label class="chk"><input type="checkbox" name="whatif" {{ 'checked' if whatif else '' }}> Skenario What-If (r turun 50%)</label>
+    <button type="submit">Jalankan simulasi</button>
+  </form>
+  <div class="out">
+    <img src="data:image/png;base64,{{ img }}" alt="Grafik simulasi">
+    {% if rows %}
+    <table>
+      <tr><th>Metode</th><th>RMSE (juta)</th><th>R2</th></tr>
+      {% for x in rows %}<tr><td>{{ x.metode }}</td><td>{{ x.rmse }}</td><td>{{ x.r2 }}</td></tr>{% endfor %}
+    </table>
+    {% endif %}
+    <p class="note">Hasil kalibrasi (curve_fit): r = {{ r_fit }} per hari, K = {{ k_fit }} juta. Coba h = 10 sampai 15 untuk melihat Euler tidak stabil.</p>
+  </div>
+</main>
+</body>
+</html>
